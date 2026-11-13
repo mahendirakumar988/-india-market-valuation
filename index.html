@@ -1,0 +1,1699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IndiaMarketValuation • Automated NSE & BSE Valuation Dashboard</title>
+  <meta name="description" content="Automated daily tracking and historical analytics of P/E, P/B, and Dividend Yield multiples across NSE and BSE indices." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg-main: #090d16;
+      --bg-card: #111827;
+      --bg-card-hover: #172134;
+      --bg-card-subtle: #0f172a;
+      --border-color: #1e293b;
+      --border-focus: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent-primary: #38bdf8;
+      --accent-primary-glow: rgba(56, 189, 248, 0.25);
+      --accent-green: #10b981;
+      --accent-green-bg: rgba(16, 185, 129, 0.12);
+      --accent-amber: #f59e0b;
+      --accent-amber-bg: rgba(245, 158, 11, 0.12);
+      --accent-red: #ef4444;
+      --accent-red-bg: rgba(239, 68, 68, 0.12);
+      --accent-purple: #a855f7;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #223049;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334466;
+    }
+
+    /* Navbar */
+    header {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.1rem;
+      box-shadow: 0 4px 12px var(--accent-primary-glow);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-tag {
+      font-size: 0.68rem;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-primary);
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Sync Status Badge */
+    .sync-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .sync-status:hover {
+      border-color: #3b82f6;
+      background: var(--bg-card-hover);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .status-dot.syncing {
+      background: var(--accent-amber);
+      box-shadow: 0 0 8px var(--accent-amber);
+      animation: pulse 1s infinite;
+    }
+
+    .status-dot.offline {
+      background: var(--text-dim);
+      box-shadow: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.2); }
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: #334155;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border-color: #38bdf8;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #075985);
+      border-color: #7dd3fc;
+    }
+    .btn-outline {
+      border-color: #334155;
+      background: transparent;
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: #64748b;
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Index Selection Bar */
+    .index-nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .index-selector-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+
+    .index-pill {
+      white-space: nowrap;
+      padding: 7px 15px;
+      border-radius: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .index-pill:hover {
+      color: var(--text-main);
+      background: var(--bg-card-hover);
+      border-color: #334155;
+    }
+    .index-pill.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+      font-weight: 600;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+    }
+
+    /* KPI Summary Cards Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    .card-badge {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+    .badge-green { background: var(--accent-green-bg); color: var(--accent-green); }
+    .badge-amber { background: var(--accent-amber-bg); color: var(--accent-amber); }
+    .badge-red { background: var(--accent-red-bg); color: var(--accent-red); }
+    .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--accent-primary); }
+
+    .card-val {
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      letter-spacing: -0.03em;
+      margin: 4px 0;
+    }
+
+    .card-subtext {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: auto;
+    }
+
+    /* Valuation Zone Gauge Card */
+    .gauge-wrapper {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .gauge-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #10b981 0%, #10b981 30%, #38bdf8 50%, #f59e0b 75%, #ef4444 100%);
+      position: relative;
+    }
+    .gauge-marker {
+      position: absolute;
+      top: -4px;
+      width: 4px;
+      height: 16px;
+      background: #fff;
+      border-radius: 2px;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
+      transform: translateX(-50%);
+      transition: left 0.4s ease;
+    }
+    .gauge-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+
+    /* Main Chart Section */
+    .chart-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .chart-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .chart-metric-selector {
+      display: flex;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .metric-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .metric-btn:hover {
+      color: var(--text-main);
+    }
+    .metric-btn.active {
+      background: #1e293b;
+      color: var(--accent-primary);
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .range-selector {
+      display: flex;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .range-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 5px 11px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .range-btn:hover {
+      color: var(--text-main);
+    }
+    .range-btn.active {
+      background: #1e293b;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 420px;
+      width: 100%;
+    }
+
+    /* Historical Data Table Section */
+    .table-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .table-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .table-search {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      outline: none;
+      width: 220px;
+    }
+    .table-search:focus {
+      border-color: var(--border-focus);
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.86rem;
+    }
+
+    th {
+      background: var(--bg-card-subtle);
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 11px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Modal / Dialog */
+    dialog {
+      background: #0f172a;
+      color: var(--text-main);
+      border: 1px solid #334155;
+      border-radius: var(--radius-lg);
+      max-width: 820px;
+      width: 92%;
+      margin: auto;
+      padding: 0;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      outline: none;
+    }
+
+    dialog::backdrop {
+      background: rgba(3, 7, 18, 0.8);
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-tab-btn {
+      padding: 12px 20px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .modal-tab-btn.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+      background: rgba(56, 189, 248, 0.05);
+    }
+
+    .modal-body {
+      padding: 24px;
+      max-height: 70vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .code-box {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: #38bdf8;
+      position: relative;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: var(--text-muted);
+      padding: 4px 9px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+    .copy-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .form-input {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .form-input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .guide-step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent-primary);
+      color: #090d16;
+      font-weight: 700;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.88rem;
+    }
+
+    /* Toast Notification */
+    #toastContainer {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-left: 4px solid var(--accent-primary);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease;
+    }
+    .toast.success { border-left-color: var(--accent-green); }
+    .toast.error { border-left-color: var(--accent-red); }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 20px 24px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin-top: auto;
+    }
+
+    @media (max-width: 768px) {
+      .nav-container { flex-direction: column; align-items: flex-start; }
+      .chart-container { height: 300px; }
+      .card-val { font-size: 1.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="nav-container">
+      <a href="#" class="brand">
+        <div class="brand-icon">₹</div>
+        <div>
+          <div class="brand-title">IndiaMarketValuation <span class="brand-tag">EOD Multiples</span></div>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <!-- Live Auto-Sync Status Badge -->
+        <div class="sync-status" id="syncStatusBadge" title="Click to view feed connection details">
+          <div class="status-dot" id="syncStatusDot"></div>
+          <span id="syncStatusText">Checking live feed...</span>
+        </div>
+
+        <!-- Immediate Sync Now Button -->
+        <button class="btn btn-outline" id="btnSyncNow" title="Fetch latest daily valuation multiples">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          <span id="btnSyncNowText">Sync Now</span>
+        </button>
+
+        <!-- Automation & Setup Modal Trigger -->
+        <button class="btn btn-primary" id="btnOpenSetup">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          Auto-Sync Setup
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Index Selector Pills -->
+    <section class="index-nav-section">
+      <div class="index-selector-container" id="indexSelectorBar">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- KPI Metric Cards Grid -->
+    <section class="kpi-grid">
+      <!-- Card 1: Closing Value -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title" id="kpiIndexTitle">Index Close</span>
+          <span class="card-badge badge-blue" id="kpiSessionDate">-</span>
+        </div>
+        <div class="card-val" id="kpiClose">-</div>
+        <div class="card-subtext" id="kpiChangeSubtext">
+          <span>Daily Change: </span>
+          <strong id="kpiChange">-</strong>
+        </div>
+      </div>
+
+      <!-- Card 2: Price-to-Earnings (P/E) -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">P/E Ratio</span>
+          <span class="card-badge" id="kpiPeBadge">Neutral</span>
+        </div>
+        <div class="card-val" id="kpiPe">-</div>
+        <div class="card-subtext">
+          <span>Historical Median: <strong id="kpiPeMedian">-</strong></span>
+          <span style="margin-left: auto;">Rank: <strong id="kpiPePercentile">-</strong></span>
+        </div>
+        <div class="gauge-wrapper">
+          <div class="gauge-bar">
+            <div class="gauge-marker" id="peGaugeMarker" style="left: 50%;"></div>
+          </div>
+          <div class="gauge-labels">
+            <span>Bargain (&lt;25%)</span>
+            <span>Fair Value</span>
+            <span>Elevated (&gt;75%)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Price-to-Book (P/B) -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">P/B Ratio</span>
+          <span class="card-badge badge-blue">Book Value</span>
+        </div>
+        <div class="card-val" id="kpiPb">-</div>
+        <div class="card-subtext">
+          <span>Range: <strong id="kpiPbMin">-</strong> to <strong id="kpiPbMax">-</strong></span>
+        </div>
+      </div>
+
+      <!-- Card 4: Dividend Yield -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Dividend Yield</span>
+          <span class="card-badge badge-green">Cash Return</span>
+        </div>
+        <div class="card-val" id="kpiDy">-%</div>
+        <div class="card-subtext">
+          <span>Historical Avg: <strong id="kpiDyAvg">-%</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Valuation Interactive Chart -->
+    <section class="chart-section">
+      <div class="chart-toolbar">
+        <!-- Metric Choice -->
+        <div class="chart-metric-selector" id="metricSelector">
+          <button class="metric-btn active" data-metric="pe">P/E Multiple</button>
+          <button class="metric-btn" data-metric="pb">P/B Ratio</button>
+          <button class="metric-btn" data-metric="dy">Dividend Yield (%)</button>
+          <button class="metric-btn" data-metric="close">Index Price</button>
+          <button class="metric-btn" data-metric="combo">P/E vs Price</button>
+        </div>
+
+        <!-- Range Choice -->
+        <div class="range-selector" id="rangeSelector">
+          <button class="range-btn" data-range="30">1M</button>
+          <button class="range-btn" data-range="90">3M</button>
+          <button class="range-btn" data-range="180">6M</button>
+          <button class="range-btn" data-range="365">1Y</button>
+          <button class="range-btn active" data-range="all">ALL</button>
+        </div>
+      </div>
+
+      <div class="chart-container">
+        <canvas id="valuationChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Historical Data Table -->
+    <section class="table-section">
+      <div class="table-header-row">
+        <div>
+          <h3 style="font-size: 1.05rem; font-weight: 600;">Daily EOD Multiples Archive</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Official historical session closing values, valuation ratios and yields.</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <input type="text" id="tableSearchInput" class="table-search" placeholder="Search date (YYYY-MM)..." />
+          <button class="btn btn-outline" id="btnExportCsv" title="Export current index to CSV">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            Export CSV
+          </button>
+          <button class="btn btn-outline" id="btnExportJson" title="Export complete valuation database">
+            Export JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table id="historyTable">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Closing Value</th>
+              <th>Daily Change</th>
+              <th>P/E Ratio</th>
+              <th>P/B Ratio</th>
+              <th>Dividend Yield</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    IndiaMarketValuation • Automated Daily NSE & BSE EOD Scraping Engine • Free Open-Source Architecture via GitHub Actions & Pages
+  </footer>
+
+  <!-- Setup & Automation Blueprint Modal -->
+  <dialog id="setupModal">
+    <div class="modal-header">
+      <div class="modal-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Auto-Sync Engine & Automation Blueprint
+      </div>
+      <button class="modal-close" id="btnCloseSetup">&times;</button>
+    </div>
+
+    <div class="modal-tabs">
+      <button class="modal-tab-btn active" data-tab="tab-feed">Live Feed URL</button>
+      <button class="modal-tab-btn" data-tab="tab-pipeline">GitHub Actions Setup</button>
+      <button class="modal-tab-btn" data-tab="tab-history">Historical Downloader</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Tab 1: Live Feed URL -->
+      <div id="tab-feed" class="modal-tab-content">
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 16px;">
+          Configure where the dashboard fetches updated valuation records. By default, it loads <code>./valuation_data.json</code> relative to the hosted site, or you can point it to a raw GitHub URL.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="feedUrlInput">JSON Feed Endpoint URL:</label>
+          <input type="text" id="feedUrlInput" class="form-input" placeholder="./valuation_data.json" />
+          <span style="font-size: 0.75rem; color: var(--text-dim);">
+            Example: <code>./valuation_data.json</code> or <code>https://raw.githubusercontent.com/&lt;user&gt;/&lt;repo&gt;/main/valuation_data.json</code>
+          </span>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 14px;">
+          <button class="btn btn-primary" id="btnSaveFeedUrl">Save & Test Connection</button>
+          <button class="btn btn-outline" id="btnResetFeedUrl">Reset to Default</button>
+          <button class="btn btn-outline" id="btnClearCache">Clear Local Cache</button>
+        </div>
+
+        <div style="margin-top: 24px; padding: 14px; background: rgba(0,0,0,0.25); border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <h4 style="font-size: 0.82rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;">Feed Diagnostics</h4>
+          <p style="font-size: 0.82rem; font-family: var(--font-mono); color: var(--accent-primary);" id="feedDiagnostics">Ready.</p>
+        </div>
+      </div>
+
+      <!-- Tab 2: GitHub Actions Setup -->
+      <div id="tab-pipeline" class="modal-tab-content" style="display: none;">
+        <div class="guide-step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <strong>Deploy Files to GitHub</strong>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">Push <code>index.html</code>, <code>update_valuations.py</code>, and <code>.github/workflows/daily_update.yml</code> to your repository.</p>
+          </div>
+        </div>
+
+        <div class="guide-step" style="margin-top: 14px;">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <strong>Enable Workflow Write Permissions</strong>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">
+              Navigate to <strong>Settings</strong> &rarr; <strong>Actions</strong> &rarr; <strong>General</strong> &rarr; <strong>Workflow permissions</strong> and select <strong>"Read and write permissions"</strong> so the action can commit updated JSON files back.
+            </p>
+          </div>
+        </div>
+
+        <div class="guide-step" style="margin-top: 14px;">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <strong>Enable GitHub Pages</strong>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">
+              Go to <strong>Settings</strong> &rarr; <strong>Pages</strong>, set Source to <strong>"Deploy from a branch"</strong>, choose <strong>main</strong> branch and <strong>/(root)</strong>, then click Save.
+            </p>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Workflow: .github/workflows/daily_update.yml</span>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('codeWorkflow').innerText); showToast('Workflow YAML copied to clipboard!', 'success');">Copy</button>
+          </div>
+          <div class="code-box" id="codeWorkflow">name: Daily Indian Index Valuation Sync
+
+on:
+  schedule:
+    - cron: '0 13 * * 1-5'  # 6:30 PM IST (13:00 UTC) Mon-Fri
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install requests pandas
+      - run: python update_valuations.py
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add valuation_data.json
+          git diff --staged --quiet || (git commit -m "chore: update EOD valuations" && git push)</div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Historical Downloader -->
+      <div id="tab-history" class="modal-tab-content" style="display: none;">
+        <h4 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px;">How Historical EOD Archiving Works</h4>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+          NSE publishes daily consolidated closing index files at:
+          <br/><code>https://archives.nseindia.com/content/indices/ind_close_all_DDMMYYYY.csv</code>
+          <br/>Each file contains P/E, P/B, Div Yield, and closing levels for all sector and broad market indices.
+        </p>
+
+        <h4 style="font-size: 0.88rem; font-weight: 600; margin-bottom: 6px;">Backfill Command Line Walkthrough:</h4>
+        <div class="code-box"># Backfill last 180 days across all indices in parallel:
+python update_valuations.py --backfill 180
+
+# Or run the dedicated historical downloader with CSV export:
+python download_history.py --days 365 --export-csv</div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
+  <script>
+    /* =====================================================================
+       IndiaMarketValuation - Client-Side Auto-Sync & Analytics Engine
+       ===================================================================== */
+
+    const INDICES_CONFIG = [
+      { id: 'nifty50', name: 'Nifty 50', category: 'Broad' },
+      { id: 'midcap150', name: 'Nifty Midcap 150', category: 'Broad' },
+      { id: 'smallcap250', name: 'Nifty Smallcap 250', category: 'Broad' },
+      { id: 'bank', name: 'Nifty Bank', category: 'Sectoral' },
+      { id: 'it', name: 'Nifty IT', category: 'Sectoral' },
+      { id: 'pharma', name: 'Nifty Pharma', category: 'Sectoral' },
+      { id: 'fmcg', name: 'Nifty FMCG', category: 'Sectoral' },
+      { id: 'auto', name: 'Nifty Auto', category: 'Sectoral' },
+      { id: 'metal', name: 'Nifty Metal', category: 'Sectoral' },
+      { id: 'energy', name: 'Nifty Energy', category: 'Sectoral' },
+      { id: 'realty', name: 'Nifty Realty', category: 'Sectoral' },
+      { id: 'sensex', name: 'BSE Sensex', category: 'BSE' }
+    ];
+
+    const STORAGE_KEY_DATA = 'india_valuation_data';
+    const STORAGE_KEY_FEED_URL = 'india_valuation_feed_url';
+    const DEFAULT_FEED_URL = './valuation_data.json';
+
+    let appState = {
+      db: { last_updated: '', indices: {} },
+      currentIndex: 'nifty50',
+      currentMetric: 'pe',
+      currentRange: 'all',
+      chartInstance: null,
+      feedUrl: localStorage.getItem(STORAGE_KEY_FEED_URL) || DEFAULT_FEED_URL
+    };
+
+    // --- Toast Notifications ---
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // --- Formatters ---
+    function formatNumber(num, decimals = 2) {
+      if (num === null || num === undefined || isNaN(num)) return '-';
+      return Number(num).toLocaleString('en-IN', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    // --- Auto-Sync Engine ---
+    async function fetchValuationFeed(customUrl = null) {
+      const url = customUrl || appState.feedUrl;
+      const statusDot = document.getElementById('syncStatusDot');
+      const statusText = document.getElementById('syncStatusText');
+      const btnSyncText = document.getElementById('btnSyncNowText');
+
+      statusDot.className = 'status-dot syncing';
+      statusText.textContent = 'Syncing EOD data...';
+      if (btnSyncText) btnSyncText.textContent = 'Syncing...';
+
+      try {
+        // Cache-busting query to ensure latest file is fetched from CDN/GitHub Pages
+        const bustUrl = url.includes('?') ? `${url}&_t=${Date.now()}` : `${url}?_t=${Date.now()}`;
+        const resp = await fetch(bustUrl, { cache: 'no-store' });
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status} - ${resp.statusText}`);
+        }
+        const freshData = await resp.json();
+
+        if (!freshData.indices || typeof freshData.indices !== 'object') {
+          throw new Error('Invalid JSON format: missing "indices" object');
+        }
+
+        // Compare with cached data & merge
+        const mergeStats = mergeFeedData(freshData);
+        saveToCache(appState.db);
+
+        statusDot.className = 'status-dot';
+        const lastDate = getLatestTradingDate();
+        statusText.textContent = lastDate ? `Live: ${lastDate}` : 'Feed Connected';
+        if (btnSyncText) btnSyncText.textContent = 'Sync Now';
+
+        if (mergeStats.newPoints > 0) {
+          showToast(`Auto-Sync: Merged ${mergeStats.newPoints} new daily session points!`, 'success');
+        } else {
+          showToast('Dashboard is up to date with latest EOD data.', 'info');
+        }
+
+        renderDashboard();
+        return { success: true, stats: mergeStats };
+      } catch (err) {
+        console.warn('Auto-sync fetch error:', err);
+        statusDot.className = 'status-dot offline';
+        statusText.textContent = 'Using Local Cache';
+        if (btnSyncText) btnSyncText.textContent = 'Sync Now';
+
+        // Check if we have cached data
+        const cached = loadFromCache();
+        if (cached && cached.indices && Object.keys(cached.indices).length > 0) {
+          appState.db = cached;
+          renderDashboard();
+        } else {
+          // If completely empty and file:/// CORS blocked, provide seed data
+          provideSeedFallback();
+          renderDashboard();
+        }
+        return { success: false, error: err.message };
+      }
+    }
+
+    function mergeFeedData(freshData) {
+      if (!appState.db.indices) {
+        appState.db = { last_updated: '', indices: {} };
+      }
+
+      let newPoints = 0;
+      for (const [key, records] of Object.entries(freshData.indices)) {
+        if (!Array.isArray(records)) continue;
+        const targetSeries = appState.db.indices[key] || [];
+        const dateSet = new Set(targetSeries.map(r => r.date));
+
+        for (const rec of records) {
+          if (!dateSet.has(rec.date)) {
+            targetSeries.push(rec);
+            dateSet.add(rec.date);
+            newPoints++;
+          } else {
+            // Update existing
+            const idx = targetSeries.findIndex(r => r.date === rec.date);
+            if (idx !== -1) targetSeries[idx] = rec;
+          }
+        }
+        targetSeries.sort((a, b) => a.date.localeCompare(b.date));
+        appState.db.indices[key] = targetSeries;
+      }
+
+      appState.db.last_updated = freshData.last_updated || new Date().toISOString();
+      return { newPoints };
+    }
+
+    function saveToCache(data) {
+      try {
+        localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(data));
+      } catch (e) {
+        console.warn('localStorage quota exceeded or unavailable');
+      }
+    }
+
+    function loadFromCache() {
+      try {
+        const item = localStorage.getItem(STORAGE_KEY_DATA);
+        return item ? JSON.parse(item) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function getLatestTradingDate() {
+      const series = appState.db.indices[appState.currentIndex];
+      if (series && series.length > 0) {
+        return series[series.length - 1].date;
+      }
+      return null;
+    }
+
+    function provideSeedFallback() {
+      // Minimal seed dataset so dashboard displays immediately on initial offline run
+      appState.db = {
+        last_updated: new Date().toISOString(),
+        indices: {
+          nifty50: [
+            { date: '2026-10-28', pe: 21.05, pb: 3.15, dy: 1.34, close: 24399.40 },
+            { date: '2026-10-29', pe: 21.12, pb: 3.16, dy: 1.33, close: 24466.85 },
+            { date: '2026-10-30', pe: 20.95, pb: 3.13, dy: 1.35, close: 24205.35 },
+            { date: '2026-11-04', pe: 20.78, pb: 3.11, dy: 1.37, close: 23995.35 },
+            { date: '2026-11-05', pe: 20.92, pb: 3.12, dy: 1.36, close: 24199.35 },
+            { date: '2026-11-06', pe: 20.85, pb: 3.11, dy: 1.37, close: 24148.20 },
+            { date: '2026-11-11', pe: 20.55, pb: 3.08, dy: 1.39, close: 25150.10 },
+            { date: '2026-11-12', pe: 20.62, pb: 3.10, dy: 1.39, close: 25299.35 }
+          ]
+        }
+      };
+    }
+
+    // --- UI Rendering ---
+    function renderIndexPills() {
+      const container = document.getElementById('indexSelectorBar');
+      container.innerHTML = '';
+
+      INDICES_CONFIG.forEach(idx => {
+        const hasData = appState.db.indices && appState.db.indices[idx.id] && appState.db.indices[idx.id].length > 0;
+        const pill = document.createElement('button');
+        pill.className = `index-pill ${idx.id === appState.currentIndex ? 'active' : ''}`;
+        pill.innerHTML = `<span>${idx.name}</span>`;
+        if (!hasData) {
+          pill.style.opacity = '0.5';
+          pill.title = 'No data currently cached for this index';
+        }
+        pill.addEventListener('click', () => {
+          appState.currentIndex = idx.id;
+          renderDashboard();
+        });
+        container.appendChild(pill);
+      });
+    }
+
+    function renderDashboard() {
+      renderIndexPills();
+      const series = (appState.db.indices && appState.db.indices[appState.currentIndex]) || [];
+      const config = INDICES_CONFIG.find(c => c.id === appState.currentIndex) || { name: appState.currentIndex };
+
+      document.getElementById('kpiIndexTitle').textContent = config.name;
+
+      if (series.length === 0) {
+        document.getElementById('kpiClose').textContent = '-';
+        document.getElementById('kpiPe').textContent = '-';
+        document.getElementById('kpiPb').textContent = '-';
+        document.getElementById('kpiDy').textContent = '-';
+        document.getElementById('kpiSessionDate').textContent = 'No Data';
+        document.getElementById('kpiChange').textContent = '-';
+        renderChart([]);
+        renderTable([]);
+        return;
+      }
+
+      const latest = series[series.length - 1];
+      const prev = series.length > 1 ? series[series.length - 2] : null;
+
+      // Close & Change
+      document.getElementById('kpiClose').textContent = formatNumber(latest.close);
+      document.getElementById('kpiSessionDate').textContent = latest.date;
+
+      if (prev && prev.close > 0) {
+        const changePts = latest.close - prev.close;
+        const changePct = (changePts / prev.close) * 100;
+        const isPos = changePts >= 0;
+        const changeEl = document.getElementById('kpiChange');
+        changeEl.textContent = `${isPos ? '+' : ''}${formatNumber(changePts)} (${isPos ? '+' : ''}${formatNumber(changePct)}%)`;
+        changeEl.style.color = isPos ? 'var(--accent-green)' : 'var(--accent-red)';
+      } else {
+        document.getElementById('kpiChange').textContent = 'N/A';
+        document.getElementById('kpiChange').style.color = 'var(--text-muted)';
+      }
+
+      // P/E Ratio Analytics
+      document.getElementById('kpiPe').textContent = formatNumber(latest.pe);
+      const peValues = series.map(s => s.pe).filter(v => v > 0).sort((a, b) => a - b);
+      if (peValues.length > 0) {
+        const medianPe = peValues[Math.floor(peValues.length / 2)];
+        document.getElementById('kpiPeMedian').textContent = formatNumber(medianPe);
+
+        // Percentile Rank
+        const rank = (peValues.filter(v => v <= latest.pe).length / peValues.length) * 100;
+        document.getElementById('kpiPePercentile').textContent = `${Math.round(rank)}%`;
+
+        // Valuation Badge & Gauge Marker
+        const marker = document.getElementById('peGaugeMarker');
+        marker.style.left = `${Math.min(Math.max(rank, 5), 95)}%`;
+
+        const badge = document.getElementById('kpiPeBadge');
+        if (rank < 25) {
+          badge.className = 'card-badge badge-green';
+          badge.textContent = 'Deep Value / Bargain';
+        } else if (rank <= 75) {
+          badge.className = 'card-badge badge-blue';
+          badge.textContent = 'Fair Valuation';
+        } else if (rank <= 90) {
+          badge.className = 'card-badge badge-amber';
+          badge.textContent = 'Elevated';
+        } else {
+          badge.className = 'card-badge badge-red';
+          badge.textContent = 'Euphoria / Expensive';
+        }
+      }
+
+      // P/B Ratio
+      document.getElementById('kpiPb').textContent = formatNumber(latest.pb);
+      const pbValues = series.map(s => s.pb).filter(v => v > 0);
+      if (pbValues.length > 0) {
+        document.getElementById('kpiPbMin').textContent = formatNumber(Math.min(...pbValues));
+        document.getElementById('kpiPbMax').textContent = formatNumber(Math.max(...pbValues));
+      }
+
+      // Dividend Yield
+      document.getElementById('kpiDy').textContent = `${formatNumber(latest.dy)}%`;
+      const dyValues = series.map(s => s.dy).filter(v => v > 0);
+      if (dyValues.length > 0) {
+        const dyAvg = dyValues.reduce((a, b) => a + b, 0) / dyValues.length;
+        document.getElementById('kpiDyAvg').textContent = `${formatNumber(dyAvg)}%`;
+      }
+
+      // Filter series by timeframe range
+      const filtered = filterSeriesByRange(series, appState.currentRange);
+      renderChart(filtered);
+      renderTable(series);
+    }
+
+    function filterSeriesByRange(series, range) {
+      if (range === 'all' || !series || series.length === 0) return series;
+      const days = parseInt(range, 10);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      const cutoffStr = cutoff.toISOString().split('T')[0];
+      return series.filter(s => s.date >= cutoffStr);
+    }
+
+    // --- Chart.js Rendering ---
+    function renderChart(series) {
+      const ctx = document.getElementById('valuationChart').getContext('2d');
+      if (appState.chartInstance) {
+        appState.chartInstance.destroy();
+      }
+
+      if (!series || series.length === 0) {
+        return;
+      }
+
+      const labels = series.map(s => s.date);
+      const metric = appState.currentMetric;
+
+      let datasets = [];
+
+      if (metric === 'pe') {
+        const peData = series.map(s => s.pe);
+        const peAvg = peData.reduce((a, b) => a + b, 0) / peData.length;
+
+        datasets.push({
+          label: 'P/E Ratio',
+          data: peData,
+          borderColor: '#38bdf8',
+          backgroundColor: 'rgba(56, 189, 248, 0.1)',
+          fill: true,
+          tension: 0.25,
+          borderWidth: 2,
+          pointRadius: series.length > 60 ? 0 : 3,
+          pointHoverRadius: 6,
+          yAxisID: 'y'
+        });
+
+        datasets.push({
+          label: `Average P/E (${formatNumber(peAvg)})`,
+          data: new Array(series.length).fill(peAvg),
+          borderColor: 'rgba(245, 158, 11, 0.8)',
+          borderDash: [5, 5],
+          borderWidth: 1.5,
+          fill: false,
+          pointRadius: 0,
+          yAxisID: 'y'
+        });
+      } else if (metric === 'pb') {
+        datasets.push({
+          label: 'Price to Book (P/B)',
+          data: series.map(s => s.pb),
+          borderColor: '#a855f7',
+          backgroundColor: 'rgba(168, 85, 247, 0.1)',
+          fill: true,
+          tension: 0.25,
+          borderWidth: 2,
+          pointRadius: series.length > 60 ? 0 : 3,
+          yAxisID: 'y'
+        });
+      } else if (metric === 'dy') {
+        datasets.push({
+          label: 'Dividend Yield (%)',
+          data: series.map(s => s.dy),
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          fill: true,
+          tension: 0.25,
+          borderWidth: 2,
+          pointRadius: series.length > 60 ? 0 : 3,
+          yAxisID: 'y'
+        });
+      } else if (metric === 'close') {
+        datasets.push({
+          label: 'Index Closing Value',
+          data: series.map(s => s.close),
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.08)',
+          fill: true,
+          tension: 0.25,
+          borderWidth: 2,
+          pointRadius: series.length > 60 ? 0 : 3,
+          yAxisID: 'y'
+        });
+      } else if (metric === 'combo') {
+        datasets.push({
+          label: 'Index Close',
+          data: series.map(s => s.close),
+          borderColor: '#94a3b8',
+          borderWidth: 1.5,
+          pointRadius: 0,
+          yAxisID: 'yPrice'
+        });
+        datasets.push({
+          label: 'P/E Multiple',
+          data: series.map(s => s.pe),
+          borderColor: '#38bdf8',
+          backgroundColor: 'rgba(56, 189, 248, 0.12)',
+          fill: true,
+          borderWidth: 2,
+          pointRadius: 0,
+          yAxisID: 'y'
+        });
+      }
+
+      const scalesConfig = {
+        x: {
+          grid: { color: 'rgba(255, 255, 255, 0.04)' },
+          ticks: { color: '#64748b', maxTicksLimit: 10 }
+        },
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left',
+          grid: { color: 'rgba(255, 255, 255, 0.06)' },
+          ticks: { color: '#94a3b8' }
+        }
+      };
+
+      if (metric === 'combo') {
+        scalesConfig.yPrice = {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: '#64748b' }
+        };
+      }
+
+      appState.chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: '#94a3b8', font: { family: 'Inter', size: 12 } }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#f8fafc',
+              bodyColor: '#94a3b8',
+              borderColor: '#334155',
+              borderWidth: 1,
+              padding: 12,
+              callbacks: {
+                label: function (context) {
+                  let val = context.parsed.y;
+                  return `${context.dataset.label}: ${formatNumber(val)}`;
+                }
+              }
+            }
+          },
+          scales: scalesConfig
+        }
+      });
+    }
+
+    // --- Table Rendering ---
+    function renderTable(series) {
+      const tbody = document.getElementById('historyTableBody');
+      const searchVal = document.getElementById('tableSearchInput').value.trim().toLowerCase();
+
+      let displaySeries = [...series].reverse();
+      if (searchVal) {
+        displaySeries = displaySeries.filter(s => s.date.toLowerCase().includes(searchVal));
+      }
+
+      tbody.innerHTML = '';
+      if (displaySeries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: var(--text-dim); padding: 24px;">No matching historical records found.</td></tr>';
+        return;
+      }
+
+      // Display up to 50 records
+      displaySeries.slice(0, 50).forEach((row, i) => {
+        const prevRow = i < displaySeries.length - 1 ? displaySeries[i + 1] : null;
+        let changeHtml = '-';
+        if (prevRow && prevRow.close > 0) {
+          const diff = row.close - prevRow.close;
+          const pct = (diff / prevRow.close) * 100;
+          const isPos = diff >= 0;
+          changeHtml = `<span style="color: ${isPos ? 'var(--accent-green)' : 'var(--accent-red)'}">${isPos ? '+' : ''}${formatNumber(pct)}%</span>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${row.date}</strong></td>
+          <td>${formatNumber(row.close)}</td>
+          <td>${changeHtml}</td>
+          <td><span style="color: var(--accent-primary); font-weight:600;">${formatNumber(row.pe)}</span></td>
+          <td>${formatNumber(row.pb)}</td>
+          <td>${formatNumber(row.dy)}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // --- CSV & JSON Exports ---
+    function exportCurrentIndexCsv() {
+      const series = (appState.db.indices && appState.db.indices[appState.currentIndex]) || [];
+      if (series.length === 0) {
+        showToast('No data available to export.', 'error');
+        return;
+      }
+
+      let csv = 'Date,Index,Close,P/E,P/B,Div_Yield\n';
+      series.forEach(r => {
+        csv += `${r.date},${appState.currentIndex},${r.close},${r.pe},${r.pb},${r.dy}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${appState.currentIndex}_valuation_history.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast(`Exported ${appState.currentIndex} CSV successfully!`, 'success');
+    }
+
+    function exportFullJson() {
+      const jsonStr = JSON.stringify(appState.db, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'valuation_data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Exported full valuation database JSON!', 'success');
+    }
+
+    // --- Modal & Tabs Setup ---
+    function setupModalEvents() {
+      const modal = document.getElementById('setupModal');
+      const btnOpen = document.getElementById('btnOpenSetup');
+      const btnClose = document.getElementById('btnCloseSetup');
+      const feedUrlInput = document.getElementById('feedUrlInput');
+
+      btnOpen.addEventListener('click', () => {
+        feedUrlInput.value = appState.feedUrl;
+        updateDiagnostics();
+        modal.showModal();
+      });
+
+      btnCloseSetup.addEventListener('click', () => modal.close());
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.close();
+      });
+
+      // Modal Tab Switching
+      const tabBtns = document.querySelectorAll('.modal-tab-btn');
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const target = btn.dataset.tab;
+          document.querySelectorAll('.modal-tab-content').forEach(c => c.style.display = 'none');
+          document.getElementById(target).style.display = 'block';
+        });
+      });
+
+      // Save Feed URL
+      document.getElementById('btnSaveFeedUrl').addEventListener('click', async () => {
+        const newUrl = feedUrlInput.value.trim() || DEFAULT_FEED_URL;
+        appState.feedUrl = newUrl;
+        localStorage.setItem(STORAGE_KEY_FEED_URL, newUrl);
+        showToast('Testing feed endpoint...', 'info');
+
+        const result = await fetchValuationFeed(newUrl);
+        updateDiagnostics(result);
+        if (result.success) {
+          showToast('Feed connected and updated successfully!', 'success');
+        } else {
+          showToast(`Feed error: ${result.error}`, 'error');
+        }
+      });
+
+      // Reset Feed URL
+      document.getElementById('btnResetFeedUrl').addEventListener('click', () => {
+        feedUrlInput.value = DEFAULT_FEED_URL;
+        appState.feedUrl = DEFAULT_FEED_URL;
+        localStorage.removeItem(STORAGE_KEY_FEED_URL);
+        showToast('Reset to default ./valuation_data.json', 'info');
+      });
+
+      // Clear Local Cache
+      document.getElementById('btnClearCache').addEventListener('click', () => {
+        localStorage.removeItem(STORAGE_KEY_DATA);
+        appState.db = { last_updated: '', indices: {} };
+        showToast('Local cache cleared. Reloading...', 'info');
+        fetchValuationFeed();
+      });
+    }
+
+    function updateDiagnostics(result = null) {
+      const diag = document.getElementById('feedDiagnostics');
+      const count = Object.values(appState.db.indices || {}).reduce((sum, arr) => sum + arr.length, 0);
+      diag.textContent = `Current Endpoint: ${appState.feedUrl}\nTotal Cached Points: ${count}\nLast Synced: ${appState.db.last_updated || 'Never'}`;
+    }
+
+    // --- Init & Event Listeners ---
+    document.addEventListener('DOMContentLoaded', () => {
+      setupModalEvents();
+
+      // Sync Now Button
+      document.getElementById('btnSyncNow').addEventListener('click', () => fetchValuationFeed());
+      document.getElementById('syncStatusBadge').addEventListener('click', () => {
+        document.getElementById('btnOpenSetup').click();
+      });
+
+      // Metric Selector Buttons
+      document.querySelectorAll('.metric-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.metric-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          appState.currentMetric = btn.dataset.metric;
+          renderDashboard();
+        });
+      });
+
+      // Range Selector Buttons
+      document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          appState.currentRange = btn.dataset.range;
+          renderDashboard();
+        });
+      });
+
+      // Table Search
+      document.getElementById('tableSearchInput').addEventListener('input', () => {
+        const series = (appState.db.indices && appState.db.indices[appState.currentIndex]) || [];
+        renderTable(series);
+      });
+
+      // Export Buttons
+      document.getElementById('btnExportCsv').addEventListener('click', exportCurrentIndexCsv);
+      document.getElementById('btnExportJson').addEventListener('click', exportFullJson);
+
+      // Initial Fetch & Render
+      fetchValuationFeed();
+    });
+  </script>
+</body>
+</html>
