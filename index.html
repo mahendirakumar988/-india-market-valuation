@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IndiaMarketValuation • Automated NSE & BSE Valuation Dashboard</title>
-  <meta name="description" content="Automated daily tracking and historical analytics of P/E, P/B, and Dividend Yield multiples across NSE and BSE indices." />
+  <meta name="description" content="Automated daily tracking and historical analytics of P/E, P/B, and Dividend Yield multiples across 15+ NSE & BSE indices." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -24,11 +24,11 @@
       --accent-primary: #38bdf8;
       --accent-primary-glow: rgba(56, 189, 248, 0.25);
       --accent-green: #10b981;
-      --accent-green-bg: rgba(16, 185, 129, 0.12);
+      --accent-green-bg: rgba(16, 185, 129, 0.14);
       --accent-amber: #f59e0b;
-      --accent-amber-bg: rgba(245, 158, 11, 0.12);
+      --accent-amber-bg: rgba(245, 158, 11, 0.14);
       --accent-red: #ef4444;
-      --accent-red-bg: rgba(239, 68, 68, 0.12);
+      --accent-red-bg: rgba(239, 68, 68, 0.14);
       --accent-purple: #a855f7;
       --radius-sm: 6px;
       --radius-md: 10px;
@@ -235,7 +235,15 @@
     .index-nav-section {
       display: flex;
       flex-direction: column;
+      gap: 10px;
+    }
+
+    .index-nav-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 12px;
+      flex-wrap: wrap;
     }
 
     .index-selector-container {
@@ -248,12 +256,12 @@
 
     .index-pill {
       white-space: nowrap;
-      padding: 7px 15px;
+      padding: 7px 14px;
       border-radius: 20px;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
-      font-size: 0.84rem;
+      font-size: 0.82rem;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -310,14 +318,14 @@
 
     .card-badge {
       font-size: 0.72rem;
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 6px;
       font-weight: 600;
     }
-    .badge-green { background: var(--accent-green-bg); color: var(--accent-green); }
-    .badge-amber { background: var(--accent-amber-bg); color: var(--accent-amber); }
-    .badge-red { background: var(--accent-red-bg); color: var(--accent-red); }
-    .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--accent-primary); }
+    .badge-green { background: var(--accent-green-bg); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-amber { background: var(--accent-amber-bg); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-red { background: var(--accent-red-bg); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-blue { background: rgba(56, 189, 248, 0.15); color: var(--accent-primary); border: 1px solid rgba(56, 189, 248, 0.3); }
 
     .card-val {
       font-size: 2.1rem;
@@ -451,6 +459,129 @@
       position: relative;
       height: 420px;
       width: 100%;
+    }
+
+    /* Benchmark Matrix Guide Section */
+    .benchmark-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .benchmark-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .benchmark-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .benchmark-tab-btn {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .benchmark-tab-btn.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+      font-weight: 600;
+    }
+
+    .benchmark-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .benchmark-card {
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+      cursor: pointer;
+    }
+    .benchmark-card:hover {
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+    }
+
+    .bench-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .bench-name {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .bench-cat {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 1px;
+    }
+
+    .bench-zones {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .bench-zone-box {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .zone-lbl {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .zone-cheap { color: var(--accent-green); }
+    .zone-fair { color: var(--accent-primary); }
+    .zone-exp { color: var(--accent-red); }
+
+    .zone-val {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-main);
+      line-height: 1.3;
+    }
+
+    .bench-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 8px;
+      margin-top: auto;
     }
 
     /* Historical Data Table Section */
@@ -723,6 +854,7 @@
       .nav-container { flex-direction: column; align-items: flex-start; }
       .chart-container { height: 300px; }
       .card-val { font-size: 1.7rem; }
+      .benchmark-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -768,6 +900,10 @@
   <main>
     <!-- Index Selector Pills -->
     <section class="index-nav-section">
+      <div class="index-nav-header">
+        <span style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.05em;">Select Index or Sector:</span>
+        <span style="font-size: 0.78rem; color: var(--text-dim);" id="indexCategoryBadge">Broad Market</span>
+      </div>
       <div class="index-selector-container" id="indexSelectorBar">
         <!-- Rendered by JS -->
       </div>
@@ -815,7 +951,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">P/B Ratio</span>
-          <span class="card-badge badge-blue">Book Value</span>
+          <span class="card-badge badge-blue" id="kpiPbBadge">Book Value</span>
         </div>
         <div class="card-val" id="kpiPb">-</div>
         <div class="card-subtext">
@@ -823,14 +959,14 @@
         </div>
       </div>
 
-      <!-- Card 4: Dividend Yield -->
+      <!-- Card 4: Dividend Yield & Primary Metric Tip -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Dividend Yield</span>
           <span class="card-badge badge-green">Cash Return</span>
         </div>
         <div class="card-val" id="kpiDy">-%</div>
-        <div class="card-subtext">
+        <div class="card-subtext" id="kpiPrimaryMetricTip">
           <span>Historical Avg: <strong id="kpiDyAvg">-%</strong></span>
         </div>
       </div>
@@ -860,6 +996,27 @@
 
       <div class="chart-container">
         <canvas id="valuationChart"></canvas>
+      </div>
+    </section>
+
+    <!-- NEW: Valuation Benchmark & Sector Valuation Guide -->
+    <section class="benchmark-section" id="benchmarkGuideSection">
+      <div class="benchmark-header-row">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 700; color: #fff;">Valuation Benchmark & Sector Reference Guide</h3>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 3px;">
+            Target buying zones, fair value bands, and primary evaluation metrics across Asset-Light vs Asset-Heavy / Cyclical sectors.
+          </p>
+        </div>
+        <div class="benchmark-tabs">
+          <button class="benchmark-tab-btn active" data-benchtab="broad">Broad Market Indices</button>
+          <button class="benchmark-tab-btn" data-benchtab="sectors">Major NSE Sectors</button>
+        </div>
+      </div>
+
+      <!-- Benchmark Cards Grid -->
+      <div class="benchmark-grid" id="benchmarkGrid">
+        <!-- Populated dynamically by JS -->
       </div>
     </section>
 
@@ -1043,19 +1200,177 @@ python download_history.py --days 365 --export-csv</div>
        ===================================================================== */
 
     const INDICES_CONFIG = [
-      { id: 'nifty50', name: 'Nifty 50', category: 'Broad' },
-      { id: 'midcap150', name: 'Nifty Midcap 150', category: 'Broad' },
-      { id: 'smallcap250', name: 'Nifty Smallcap 250', category: 'Broad' },
-      { id: 'bank', name: 'Nifty Bank', category: 'Sectoral' },
-      { id: 'it', name: 'Nifty IT', category: 'Sectoral' },
-      { id: 'pharma', name: 'Nifty Pharma', category: 'Sectoral' },
-      { id: 'fmcg', name: 'Nifty FMCG', category: 'Sectoral' },
-      { id: 'auto', name: 'Nifty Auto', category: 'Sectoral' },
-      { id: 'metal', name: 'Nifty Metal', category: 'Sectoral' },
-      { id: 'energy', name: 'Nifty Energy', category: 'Sectoral' },
-      { id: 'realty', name: 'Nifty Realty', category: 'Sectoral' },
-      { id: 'sensex', name: 'BSE Sensex', category: 'BSE' }
+      { id: 'nifty50', name: 'Nifty 50', category: 'Broad Market', tag: 'Large Cap' },
+      { id: 'next50', name: 'Nifty Next 50', category: 'Broad Market', tag: 'Junior Large Cap' },
+      { id: 'nifty500', name: 'Nifty 500', category: 'Broad Market', tag: 'Overall Market' },
+      { id: 'midcap150', name: 'Nifty Midcap 150', category: 'Broad Market', tag: 'Mid Caps' },
+      { id: 'smallcap250', name: 'Nifty Smallcap 250', category: 'Broad Market', tag: 'Small Caps' },
+      { id: 'bank', name: 'Nifty Bank', category: 'Major Sectors', tag: 'Private & PSU Banks' },
+      { id: 'psubank', name: 'Nifty PSU Bank', category: 'Major Sectors', tag: 'Govt. Banks' },
+      { id: 'it', name: 'Nifty IT', category: 'Major Sectors', tag: 'Software & Tech' },
+      { id: 'fmcg', name: 'Nifty FMCG', category: 'Major Sectors', tag: 'Consumer Staples' },
+      { id: 'pharma', name: 'Nifty Pharma', category: 'Major Sectors', tag: 'Pharma & Healthcare' },
+      { id: 'auto', name: 'Nifty Auto', category: 'Major Sectors', tag: 'Automobiles & EVs' },
+      { id: 'infra', name: 'Nifty Infra', category: 'Major Sectors', tag: 'Power, Infra & Cement' },
+      { id: 'metal', name: 'Nifty Metal', category: 'Major Sectors', tag: 'Steel, Aluminum, Mining' },
+      { id: 'energy', name: 'Nifty Energy', category: 'Major Sectors', tag: 'Oil, Gas & Refineries' },
+      { id: 'realty', name: 'Nifty Realty', category: 'Major Sectors', tag: 'Real Estate Developers' },
+      { id: 'sensex', name: 'BSE Sensex', category: 'BSE', tag: 'BSE 30' }
     ];
+
+    // Valuation Matrix & Benchmarks
+    const BENCHMARK_GUIDE = {
+      nifty50: {
+        name: 'Nifty 50',
+        group: 'broad',
+        tag: 'Large Cap',
+        cheapPE: '< 17', cheapPB: '< 2.5', maxCheapPE: 17, maxCheapPB: 2.5,
+        fairPE: '18 – 22', fairPB: '3.0 – 3.8', minFairPE: 18, maxFairPE: 22, minFairPB: 3.0, maxFairPB: 3.8,
+        expPE: '> 24', expPB: '> 4.5', minExpPE: 24, minExpPB: 4.5,
+        metric: 'PE & PB',
+        insight: 'Flagship index of top 50 blue chips; P/E below 18 historically marks long-term accumulation zones.'
+      },
+      next50: {
+        name: 'Nifty Next 50',
+        group: 'broad',
+        tag: 'Junior Large Cap',
+        cheapPE: '< 18', cheapPB: '< 3.0', maxCheapPE: 18, maxCheapPB: 3.0,
+        fairPE: '20 – 26', fairPB: '3.5 – 4.5', minFairPE: 20, maxFairPE: 26, minFairPB: 3.5, maxFairPB: 4.5,
+        expPE: '> 30', expPB: '> 5.5', minExpPE: 30, minExpPB: 5.5,
+        metric: 'PE Ratio',
+        insight: 'Emerging market leaders; dynamic growth potential with higher valuation elasticity.'
+      },
+      nifty500: {
+        name: 'Nifty 500',
+        group: 'broad',
+        tag: 'Overall Market',
+        cheapPE: '< 20', cheapPB: '< 2.8', maxCheapPE: 20, maxCheapPB: 2.8,
+        fairPE: '21 – 26', fairPB: '3.2 – 4.0', minFairPE: 21, maxFairPE: 26, minFairPB: 3.2, maxFairPB: 4.0,
+        expPE: '> 28', expPB: '> 4.5', minExpPE: 28, minExpPB: 4.5,
+        metric: 'PE & PB',
+        insight: 'Represents ~96% of total Indian market cap; best single gauge for broad equity valuation.'
+      },
+      midcap150: {
+        name: 'Nifty Midcap 150',
+        group: 'broad',
+        tag: 'Mid Caps',
+        cheapPE: '< 23', cheapPB: '< 2.8', maxCheapPE: 23, maxCheapPB: 2.8,
+        fairPE: '25 – 34', fairPB: '3.2 – 4.2', minFairPE: 25, maxFairPE: 34, minFairPB: 3.2, maxFairPB: 4.2,
+        expPE: '> 38', expPB: '> 4.8', minExpPE: 38, minExpPB: 4.8,
+        metric: 'PE Ratio & Earnings Growth',
+        insight: 'Fast-growing companies; strong compounding zone when P/E is between 25-34x.'
+      },
+      smallcap250: {
+        name: 'Nifty Smallcap 250',
+        group: 'broad',
+        tag: 'Small Caps',
+        cheapPE: '< 21', cheapPB: '< 2.2', maxCheapPE: 21, maxCheapPB: 2.2,
+        fairPE: '24 – 33', fairPB: '2.8 – 3.8', minFairPE: 24, maxFairPE: 33, minFairPB: 2.8, maxFairPB: 3.8,
+        expPE: '> 36', expPB: '> 4.2', minExpPE: 36, minExpPB: 4.2,
+        metric: 'PB Ratio & Cash Flows',
+        insight: 'Deep value below 21x PE, but caution recommended when multiple stretches beyond 36x.'
+      },
+      bank: {
+        name: 'Nifty Bank',
+        group: 'sectors',
+        tag: 'Private & PSU Banks',
+        cheapPE: '< 12', cheapPB: '< 1.8', maxCheapPE: 12, maxCheapPB: 1.8,
+        fairPE: '13 – 17', fairPB: '2.2 – 3.0', minFairPE: 13, maxFairPE: 17, minFairPB: 2.2, maxFairPB: 3.0,
+        expPE: '> 19', expPB: '> 3.4', minExpPE: 19, minExpPB: 3.4,
+        metric: 'PB Ratio',
+        insight: 'Loan book quality & net worth matter far more than quarterly profit swings.'
+      },
+      psubank: {
+        name: 'Nifty PSU Bank',
+        group: 'sectors',
+        tag: 'Govt. Banks',
+        cheapPE: '< 6', cheapPB: '< 0.8', maxCheapPE: 6, maxCheapPB: 0.8,
+        fairPE: '7 – 10', fairPB: '1.0 – 1.4', minFairPE: 7, maxFairPE: 10, minFairPB: 1.0, maxFairPB: 1.4,
+        expPE: '> 12', expPB: '> 1.7', minExpPE: 12, minExpPB: 1.7,
+        metric: 'PB Ratio',
+        insight: 'Under 1.0x book value historically indicates a generational deep-value accumulation zone.'
+      },
+      it: {
+        name: 'Nifty IT',
+        group: 'sectors',
+        tag: 'Software & Tech',
+        cheapPE: '< 19', cheapPB: '< 4.5', maxCheapPE: 19, maxCheapPB: 4.5,
+        fairPE: '22 – 29', fairPB: '5.5 – 7.5', minFairPE: 22, maxFairPE: 29, minFairPB: 5.5, maxFairPB: 7.5,
+        expPE: '> 33', expPB: '> 9.0', minExpPE: 33, minExpPB: 9.0,
+        metric: 'PE Ratio',
+        insight: 'Asset-light business model with high ROCE; P/B is naturally high so P/E is primary.'
+      },
+      fmcg: {
+        name: 'Nifty FMCG',
+        group: 'sectors',
+        tag: 'Consumer Staples',
+        cheapPE: '< 32', cheapPB: '< 7.0', maxCheapPE: 32, maxCheapPB: 7.0,
+        fairPE: '36 – 45', fairPB: '8.0 – 11.0', minFairPE: 36, maxFairPE: 45, minFairPB: 8.0, maxFairPB: 11.0,
+        expPE: '> 48', expPB: '> 12.5', minExpPE: 48, minExpPB: 12.5,
+        metric: 'PE Ratio',
+        insight: 'Strong consumer brand monopolies & consistent free cash flow keep multiples structurally premium.'
+      },
+      pharma: {
+        name: 'Nifty Pharma / Healthcare',
+        group: 'sectors',
+        tag: 'Pharma & Labs',
+        cheapPE: '< 28', cheapPB: '< 3.8', maxCheapPE: 28, maxCheapPB: 3.8,
+        fairPE: '31 – 38', fairPB: '4.5 – 5.8', minFairPE: 31, maxFairPE: 38, minFairPB: 4.5, maxFairPB: 5.8,
+        expPE: '> 42', expPB: '> 6.5', minExpPE: 42, minExpPB: 6.5,
+        metric: 'PE Ratio',
+        insight: 'Monitors US FDA clearance cycles, domestic chronic therapies, and API margin expansion.'
+      },
+      auto: {
+        name: 'Nifty Auto',
+        group: 'sectors',
+        tag: 'Automobiles & EVs',
+        cheapPE: '< 19', cheapPB: '< 3.2', maxCheapPE: 19, maxCheapPB: 3.2,
+        fairPE: '22 – 28', fairPB: '3.8 – 4.8', minFairPE: 22, maxFairPE: 28, minFairPB: 3.8, maxFairPB: 4.8,
+        expPE: '> 32', expPB: '> 5.5', minExpPE: 32, minExpPB: 5.5,
+        metric: 'Both PE & PB',
+        insight: 'Highly cyclical consumer discretionary demand causes significant swings in earnings multiples.'
+      },
+      infra: {
+        name: 'Nifty Infra',
+        group: 'sectors',
+        tag: 'Power, Capital Goods, Cement',
+        cheapPE: '< 17', cheapPB: '< 2.2', maxCheapPE: 17, maxCheapPB: 2.2,
+        fairPE: '19 – 24', fairPB: '2.6 – 3.5', minFairPE: 19, maxFairPE: 24, minFairPB: 2.6, maxFairPB: 3.5,
+        expPE: '> 27', expPB: '> 4.2', minExpPE: 27, minExpPB: 4.2,
+        metric: 'PB Ratio',
+        insight: 'Heavy capital investments, multi-year gestation periods, and order books drive equity value.'
+      },
+      metal: {
+        name: 'Nifty Metal',
+        group: 'sectors',
+        tag: 'Steel, Aluminum, Mining',
+        cheapPE: '< 10', cheapPB: '< 1.4', maxCheapPE: 10, maxCheapPB: 1.4,
+        fairPE: '12 – 18', fairPB: '1.8 – 2.6', minFairPE: 12, maxFairPE: 18, minFairPB: 1.8, maxFairPB: 2.6,
+        expPE: '> 22', expPB: '> 3.0', minExpPE: 22, minExpPB: 3.0,
+        metric: 'PB Ratio',
+        insight: 'Classic cyclical: PE appears deceivingly high when earnings crash, and low at cycle peaks. Rely on PB.'
+      },
+      energy: {
+        name: 'Nifty Energy',
+        group: 'sectors',
+        tag: 'Oil, Gas & Power',
+        cheapPE: '< 10', cheapPB: '< 1.3', maxCheapPE: 10, maxCheapPB: 1.3,
+        fairPE: '12 – 16', fairPB: '1.6 – 2.2', minFairPE: 12, maxFairPE: 16, minFairPB: 1.6, maxFairPB: 2.2,
+        expPE: '> 19', expPB: '> 2.6', minExpPE: 19, minExpPB: 2.6,
+        metric: 'PB Ratio & Div Yield',
+        insight: 'Global refining margins and oil prices govern profitability; dividend yields cushion drawdowns.'
+      },
+      realty: {
+        name: 'Nifty Realty',
+        group: 'sectors',
+        tag: 'Real Estate Developers',
+        cheapPE: '< 28', cheapPB: '< 2.5', maxCheapPE: 28, maxCheapPB: 2.5,
+        fairPE: '33 – 45', fairPB: '3.2 – 4.5', minFairPE: 33, maxFairPE: 45, minFairPB: 3.2, maxFairPB: 4.5,
+        expPE: '> 55', expPB: '> 5.5', minExpPE: 55, minExpPB: 5.5,
+        metric: 'PB Ratio',
+        insight: 'Land bank value, pre-sales momentum, and debt-to-equity matter more than trailing PE.'
+      }
+    };
 
     const STORAGE_KEY_DATA = 'india_valuation_data';
     const STORAGE_KEY_FEED_URL = 'india_valuation_feed_url';
@@ -1066,6 +1381,7 @@ python download_history.py --days 365 --export-csv</div>
       currentIndex: 'nifty50',
       currentMetric: 'pe',
       currentRange: 'all',
+      currentBenchTab: 'broad',
       chartInstance: null,
       feedUrl: localStorage.getItem(STORAGE_KEY_FEED_URL) || DEFAULT_FEED_URL
     };
@@ -1106,7 +1422,6 @@ python download_history.py --days 365 --export-csv</div>
       if (btnSyncText) btnSyncText.textContent = 'Syncing...';
 
       try {
-        // Cache-busting query to ensure latest file is fetched from CDN/GitHub Pages
         const bustUrl = url.includes('?') ? `${url}&_t=${Date.now()}` : `${url}?_t=${Date.now()}`;
         const resp = await fetch(bustUrl, { cache: 'no-store' });
         if (!resp.ok) {
@@ -1118,7 +1433,6 @@ python download_history.py --days 365 --export-csv</div>
           throw new Error('Invalid JSON format: missing "indices" object');
         }
 
-        // Compare with cached data & merge
         const mergeStats = mergeFeedData(freshData);
         saveToCache(appState.db);
 
@@ -1134,6 +1448,7 @@ python download_history.py --days 365 --export-csv</div>
         }
 
         renderDashboard();
+        renderBenchmarkCards();
         return { success: true, stats: mergeStats };
       } catch (err) {
         console.warn('Auto-sync fetch error:', err);
@@ -1141,16 +1456,12 @@ python download_history.py --days 365 --export-csv</div>
         statusText.textContent = 'Using Local Cache';
         if (btnSyncText) btnSyncText.textContent = 'Sync Now';
 
-        // Check if we have cached data
         const cached = loadFromCache();
         if (cached && cached.indices && Object.keys(cached.indices).length > 0) {
           appState.db = cached;
-          renderDashboard();
-        } else {
-          // If completely empty and file:/// CORS blocked, provide seed data
-          provideSeedFallback();
-          renderDashboard();
         }
+        renderDashboard();
+        renderBenchmarkCards();
         return { success: false, error: err.message };
       }
     }
@@ -1172,7 +1483,6 @@ python download_history.py --days 365 --export-csv</div>
             dateSet.add(rec.date);
             newPoints++;
           } else {
-            // Update existing
             const idx = targetSeries.findIndex(r => r.date === rec.date);
             if (idx !== -1) targetSeries[idx] = rec;
           }
@@ -1189,7 +1499,7 @@ python download_history.py --days 365 --export-csv</div>
       try {
         localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(data));
       } catch (e) {
-        console.warn('localStorage quota exceeded or unavailable');
+        console.warn('localStorage quota exceeded');
       }
     }
 
@@ -1208,25 +1518,6 @@ python download_history.py --days 365 --export-csv</div>
         return series[series.length - 1].date;
       }
       return null;
-    }
-
-    function provideSeedFallback() {
-      // Minimal seed dataset so dashboard displays immediately on initial offline run
-      appState.db = {
-        last_updated: new Date().toISOString(),
-        indices: {
-          nifty50: [
-            { date: '2026-10-28', pe: 21.05, pb: 3.15, dy: 1.34, close: 24399.40 },
-            { date: '2026-10-29', pe: 21.12, pb: 3.16, dy: 1.33, close: 24466.85 },
-            { date: '2026-10-30', pe: 20.95, pb: 3.13, dy: 1.35, close: 24205.35 },
-            { date: '2026-11-04', pe: 20.78, pb: 3.11, dy: 1.37, close: 23995.35 },
-            { date: '2026-11-05', pe: 20.92, pb: 3.12, dy: 1.36, close: 24199.35 },
-            { date: '2026-11-06', pe: 20.85, pb: 3.11, dy: 1.37, close: 24148.20 },
-            { date: '2026-11-11', pe: 20.55, pb: 3.08, dy: 1.39, close: 25150.10 },
-            { date: '2026-11-12', pe: 20.62, pb: 3.10, dy: 1.39, close: 25299.35 }
-          ]
-        }
-      };
     }
 
     // --- UI Rendering ---
@@ -1251,12 +1542,27 @@ python download_history.py --days 365 --export-csv</div>
       });
     }
 
+    function evaluateValuationZone(idxKey, pe, pb) {
+      const b = BENCHMARK_GUIDE[idxKey];
+      if (!b) return { label: 'Neutral', badgeClass: 'badge-blue' };
+
+      if (pe <= b.maxCheapPE || pb <= b.maxCheapPB) {
+        return { label: 'Cheap / Buying Zone', badgeClass: 'badge-green' };
+      }
+      if (pe >= b.minExpPE || pb >= b.minExpPB) {
+        return { label: 'Expensive / Caution', badgeClass: 'badge-red' };
+      }
+      return { label: 'Fair / Normal Range', badgeClass: 'badge-blue' };
+    }
+
     function renderDashboard() {
       renderIndexPills();
       const series = (appState.db.indices && appState.db.indices[appState.currentIndex]) || [];
-      const config = INDICES_CONFIG.find(c => c.id === appState.currentIndex) || { name: appState.currentIndex };
+      const config = INDICES_CONFIG.find(c => c.id === appState.currentIndex) || { name: appState.currentIndex, category: 'Index' };
+      const bench = BENCHMARK_GUIDE[appState.currentIndex];
 
       document.getElementById('kpiIndexTitle').textContent = config.name;
+      document.getElementById('indexCategoryBadge').textContent = `${config.category} • ${config.tag || ''}`;
 
       if (series.length === 0) {
         document.getElementById('kpiClose').textContent = '-';
@@ -1296,28 +1602,17 @@ python download_history.py --days 365 --export-csv</div>
         const medianPe = peValues[Math.floor(peValues.length / 2)];
         document.getElementById('kpiPeMedian').textContent = formatNumber(medianPe);
 
-        // Percentile Rank
         const rank = (peValues.filter(v => v <= latest.pe).length / peValues.length) * 100;
         document.getElementById('kpiPePercentile').textContent = `${Math.round(rank)}%`;
 
-        // Valuation Badge & Gauge Marker
         const marker = document.getElementById('peGaugeMarker');
         marker.style.left = `${Math.min(Math.max(rank, 5), 95)}%`;
 
+        // Evaluate against benchmark guide
+        const zone = evaluateValuationZone(appState.currentIndex, latest.pe, latest.pb);
         const badge = document.getElementById('kpiPeBadge');
-        if (rank < 25) {
-          badge.className = 'card-badge badge-green';
-          badge.textContent = 'Deep Value / Bargain';
-        } else if (rank <= 75) {
-          badge.className = 'card-badge badge-blue';
-          badge.textContent = 'Fair Valuation';
-        } else if (rank <= 90) {
-          badge.className = 'card-badge badge-amber';
-          badge.textContent = 'Elevated';
-        } else {
-          badge.className = 'card-badge badge-red';
-          badge.textContent = 'Euphoria / Expensive';
-        }
+        badge.className = `card-badge ${zone.badgeClass}`;
+        badge.textContent = zone.label;
       }
 
       // P/B Ratio
@@ -1328,7 +1623,7 @@ python download_history.py --days 365 --export-csv</div>
         document.getElementById('kpiPbMax').textContent = formatNumber(Math.max(...pbValues));
       }
 
-      // Dividend Yield
+      // Dividend Yield & Primary Metric Tip
       document.getElementById('kpiDy').textContent = `${formatNumber(latest.dy)}%`;
       const dyValues = series.map(s => s.dy).filter(v => v > 0);
       if (dyValues.length > 0) {
@@ -1336,7 +1631,14 @@ python download_history.py --days 365 --export-csv</div>
         document.getElementById('kpiDyAvg').textContent = `${formatNumber(dyAvg)}%`;
       }
 
-      // Filter series by timeframe range
+      // Primary Metric Tip
+      if (bench) {
+        document.getElementById('kpiPrimaryMetricTip').innerHTML = `
+          <span>Watch: <strong style="color: var(--accent-primary);">${bench.metric}</strong></span>
+          <span style="margin-left: auto;">Avg Yield: <strong>${formatNumber(dyValues.reduce((a, b) => a + b, 0) / (dyValues.length || 1))}%</strong></span>
+        `;
+      }
+
       const filtered = filterSeriesByRange(series, appState.currentRange);
       renderChart(filtered);
       renderTable(series);
@@ -1411,7 +1713,7 @@ python download_history.py --days 365 --export-csv</div>
           label: 'Dividend Yield (%)',
           data: series.map(s => s.dy),
           borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          backgroundColor: 'rgba(168, 85, 247, 0.1)',
           fill: true,
           tension: 0.25,
           borderWidth: 2,
@@ -1506,6 +1808,78 @@ python download_history.py --days 365 --export-csv</div>
       });
     }
 
+    // --- Benchmark Cards Rendering ---
+    function renderBenchmarkCards() {
+      const grid = document.getElementById('benchmarkGrid');
+      grid.innerHTML = '';
+
+      const targetGroup = appState.currentBenchTab; // 'broad' or 'sectors'
+      const items = Object.entries(BENCHMARK_GUIDE).filter(([k, v]) => v.group === targetGroup);
+
+      items.forEach(([key, bench]) => {
+        const series = (appState.db.indices && appState.db.indices[key]) || [];
+        const latest = series.length > 0 ? series[series.length - 1] : null;
+
+        let liveStatusBadge = '<span class="card-badge badge-blue">Pending Data</span>';
+        let livePeText = 'PE: -';
+        let livePbText = 'PB: -';
+
+        if (latest) {
+          livePeText = `PE: ${formatNumber(latest.pe)}`;
+          livePbText = `PB: ${formatNumber(latest.pb)}`;
+          const zone = evaluateValuationZone(key, latest.pe, latest.pb);
+          liveStatusBadge = `<span class="card-badge ${zone.badgeClass}">${zone.label}</span>`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'benchmark-card';
+        card.innerHTML = `
+          <div class="bench-top">
+            <div>
+              <div class="bench-name">${bench.name}</div>
+              <div class="bench-cat">${bench.tag}</div>
+            </div>
+            ${liveStatusBadge}
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; background: rgba(56, 189, 248, 0.05); padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid rgba(56, 189, 248, 0.1);">
+            <span style="font-size:0.75rem; color:var(--text-muted);">Current Levels:</span>
+            <span style="font-family:var(--font-mono); font-size:0.8rem; font-weight:600; color:#fff;">
+              <strong style="color:var(--accent-primary);">${livePeText}</strong> &nbsp;|&nbsp; <strong>${livePbText}</strong>
+            </span>
+          </div>
+
+          <div class="bench-zones">
+            <div class="bench-zone-box">
+              <span class="zone-lbl zone-cheap">Cheap / Buying</span>
+              <span class="zone-val">PE ${bench.cheapPE}<br/>PB ${bench.cheapPB}</span>
+            </div>
+            <div class="bench-zone-box">
+              <span class="zone-lbl zone-fair">Fair / Normal</span>
+              <span class="zone-val">PE ${bench.fairPE}<br/>PB ${bench.fairPB}</span>
+            </div>
+            <div class="bench-zone-box">
+              <span class="zone-lbl zone-exp">Expensive</span>
+              <span class="zone-val">PE ${bench.expPE}<br/>PB ${bench.expPB}</span>
+            </div>
+          </div>
+
+          <div class="bench-footer">
+            <span title="${bench.insight}" style="cursor:help;">Watch: <strong style="color:var(--accent-primary);">${bench.metric}</strong></span>
+            <span style="color:var(--accent-primary); font-weight:500;">Click to View Chart &rarr;</span>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          appState.currentIndex = key;
+          renderDashboard();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
     // --- Table Rendering ---
     function renderTable(series) {
       const tbody = document.getElementById('historyTableBody');
@@ -1522,7 +1896,6 @@ python download_history.py --days 365 --export-csv</div>
         return;
       }
 
-      // Display up to 50 records
       displaySeries.slice(0, 50).forEach((row, i) => {
         const prevRow = i < displaySeries.length - 1 ? displaySeries[i + 1] : null;
         let changeHtml = '-';
@@ -1599,7 +1972,6 @@ python download_history.py --days 365 --export-csv</div>
         if (e.target === modal) modal.close();
       });
 
-      // Modal Tab Switching
       const tabBtns = document.querySelectorAll('.modal-tab-btn');
       tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1612,7 +1984,6 @@ python download_history.py --days 365 --export-csv</div>
         });
       });
 
-      // Save Feed URL
       document.getElementById('btnSaveFeedUrl').addEventListener('click', async () => {
         const newUrl = feedUrlInput.value.trim() || DEFAULT_FEED_URL;
         appState.feedUrl = newUrl;
@@ -1628,7 +1999,6 @@ python download_history.py --days 365 --export-csv</div>
         }
       });
 
-      // Reset Feed URL
       document.getElementById('btnResetFeedUrl').addEventListener('click', () => {
         feedUrlInput.value = DEFAULT_FEED_URL;
         appState.feedUrl = DEFAULT_FEED_URL;
@@ -1636,7 +2006,6 @@ python download_history.py --days 365 --export-csv</div>
         showToast('Reset to default ./valuation_data.json', 'info');
       });
 
-      // Clear Local Cache
       document.getElementById('btnClearCache').addEventListener('click', () => {
         localStorage.removeItem(STORAGE_KEY_DATA);
         appState.db = { last_updated: '', indices: {} };
@@ -1654,6 +2023,16 @@ python download_history.py --days 365 --export-csv</div>
     // --- Init & Event Listeners ---
     document.addEventListener('DOMContentLoaded', () => {
       setupModalEvents();
+
+      // Benchmark Guide Tabs
+      document.querySelectorAll('.benchmark-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.benchmark-tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          appState.currentBenchTab = btn.dataset.benchtab;
+          renderBenchmarkCards();
+        });
+      });
 
       // Sync Now Button
       document.getElementById('btnSyncNow').addEventListener('click', () => fetchValuationFeed());

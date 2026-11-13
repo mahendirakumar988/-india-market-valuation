@@ -21,13 +21,17 @@ DATA_FILE = "valuation_data.json"
 
 NSE_INDEX_MAP = {
     "Nifty 50": "nifty50",
+    "Nifty Next 50": "next50",
+    "Nifty 500": "nifty500",
     "Nifty Midcap 150": "midcap150",
     "Nifty Smallcap 250": "smallcap250",
     "Nifty Bank": "bank",
+    "Nifty PSU Bank": "psubank",
     "Nifty IT": "it",
     "Nifty Pharma": "pharma",
     "Nifty FMCG": "fmcg",
     "Nifty Auto": "auto",
+    "Nifty Infrastructure": "infra",
     "Nifty Metal": "metal",
     "Nifty Energy": "energy",
     "Nifty Realty": "realty",
@@ -60,7 +64,6 @@ def download_single_date(dt: datetime, save_raw_dir=None):
         if resp.status_code != 200 or len(resp.text.strip()) < 100:
             return iso_date, None, False
 
-        # Optionally save raw CSV
         if save_raw_dir:
             os.makedirs(save_raw_dir, exist_ok=True)
             raw_path = os.path.join(save_raw_dir, f"ind_close_all_{date_str}.csv")
@@ -100,18 +103,15 @@ def run_download(start_date: datetime, end_date: datetime, workers=10, save_raw_
         print(f"Saving raw daily CSVs to: {save_raw_dir}")
     print("=" * 43)
 
-    # Generate dates list
     curr = start_date
     date_list = []
     while curr <= end_date:
-        # Skip Saturday (5) and Sunday (6)
         if curr.weekday() < 5:
             date_list.append(curr)
         curr += timedelta(days=1)
 
     print(f"Total potential trading days to query: {len(date_list)}")
 
-    # Load existing database
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r", encoding="utf-8") as f:
             db = json.load(f)
@@ -130,7 +130,6 @@ def run_download(start_date: datetime, end_date: datetime, workers=10, save_raw_
                 found_count += 1
                 for key, record in updates.items():
                     series = db["indices"].setdefault(key, [])
-                    # Deduplicate
                     idx = next((i for i, item in enumerate(series) if item["date"] == record["date"]), None)
                     if idx is not None:
                         series[idx] = record
@@ -148,10 +147,7 @@ def run_download(start_date: datetime, end_date: datetime, workers=10, save_raw_
                             "Close": record["close"]
                         })
                 print(f"  [OK] {iso_date} - {len(updates)} indices downloaded")
-            else:
-                pass
 
-    # Sort each series chronologically
     for key in db.get("indices", {}):
         db["indices"][key].sort(key=lambda x: x["date"])
 

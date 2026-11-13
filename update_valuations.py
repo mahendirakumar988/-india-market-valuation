@@ -20,13 +20,17 @@ DATA_FILE = "valuation_data.json"
 
 NSE_INDEX_MAP = {
     "Nifty 50": "nifty50",
+    "Nifty Next 50": "next50",
+    "Nifty 500": "nifty500",
     "Nifty Midcap 150": "midcap150",
     "Nifty Smallcap 250": "smallcap250",
     "Nifty Bank": "bank",
+    "Nifty PSU Bank": "psubank",
     "Nifty IT": "it",
     "Nifty Pharma": "pharma",
     "Nifty FMCG": "fmcg",
     "Nifty Auto": "auto",
+    "Nifty Infrastructure": "infra",
     "Nifty Metal": "metal",
     "Nifty Energy": "energy",
     "Nifty Realty": "realty",
@@ -59,10 +63,8 @@ def fetch_nse_eod(target_date: datetime):
     try:
         resp = requests.get(url, headers=headers, timeout=20)
         if resp.status_code != 200 or len(resp.text.strip()) < 100:
-            print(f"No NSE archive found for {date_str} (Status: {resp.status_code} - Holiday/Weekend/Not yet published).")
             return None
 
-        # Some CSVs may have trailing commas or varied encodings
         df = pd.read_csv(io.StringIO(resp.text))
         df.columns = [c.strip() for c in df.columns]
         iso_date = target_date.strftime("%Y-%m-%d")
@@ -78,7 +80,6 @@ def fetch_nse_eod(target_date: datetime):
                     dy = clean_float(row.get("Div Yield"))
                     close = clean_float(row.get("Closing Index Value"))
 
-                    # Only record valid values
                     if close > 0:
                         updates[key] = {
                             "date": iso_date,
@@ -120,7 +121,7 @@ def fetch_bse_sensex(target_date: datetime):
                     "close": round(close, 2),
                 }
     except Exception as exc:
-        print(f"BSE fetch skipped: {exc}")
+        pass
     return None
 
 def load_database():
@@ -136,7 +137,6 @@ def load_database():
 def save_database(db):
     """Saves database to valuation_data.json sorted by date."""
     for key in db.get("indices", {}):
-        # Sort each index series chronologically
         db["indices"][key].sort(key=lambda x: x["date"])
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(db, f, indent=2)
@@ -146,18 +146,14 @@ def merge_record(db, key, record):
     series = db["indices"].setdefault(key, [])
     for idx, item in enumerate(series):
         if item["date"] == record["date"]:
-            # Update existing record
             series[idx] = record
             return False
-    # Not found, append
     series.append(record)
     return True
 
 def backfill_history(days=60, workers=8):
-    """
-    Backfills past historical trading days in parallel from NSE archives.
-    """
-    print(f"Backfilling past {days} days of historical EOD valuation data...")
+    """Backfills past historical trading days in parallel from NSE archives."""
+    print(f"Backfilling past {days} days across {len(NSE_INDEX_MAP)} indices...")
     db = load_database()
     now_ist = datetime.now(IST)
     target_dates = [now_ist - timedelta(days=i) for i in range(days, 0, -1)]
@@ -172,7 +168,6 @@ def backfill_history(days=60, workers=8):
                 for key, record in updates.items():
                     if merge_record(db, key, record):
                         total_added += 1
-                print(f"  [OK] {dt.strftime('%Y-%m-%d')} - {len(updates)} indices merged")
 
     db["last_updated"] = now_ist.isoformat()
     save_database(db)
@@ -194,19 +189,15 @@ def main():
     else:
         target_date = now_ist
 
-    print(f"Running valuation scraper for target date: {target_date.strftime('%Y-%m-%d')} (Current IST: {now_ist.strftime('%Y-%m-%d %H:%M:%S')})")
+    print(f"Running valuation scraper for target date: {target_date.strftime('%Y-%m-%d')}")
 
     nse_updates = fetch_nse_eod(target_date)
 
-    # If today's file is not available yet (e.g. run before 6:30 PM IST or holiday/weekend),
-    # fallback to check the most recent trading day so manual runs and tests always succeed.
     if not nse_updates and not args.date:
-        print("Checking recent trading days for latest available EOD archive...")
         for lookback in range(1, 8):
             cand_date = now_ist - timedelta(days=lookback)
             cand_updates = fetch_nse_eod(cand_date)
             if cand_updates:
-                print(f"Found latest available trading session: {cand_date.strftime('%Y-%m-%d')}")
                 target_date = cand_date
                 nse_updates = cand_updates
                 break
@@ -223,7 +214,6 @@ def main():
     sensex_record = fetch_bse_sensex(target_date)
     if sensex_record and sensex_record["pe"] > 0:
         merge_record(db, "sensex", sensex_record)
-        print(f"Fetched BSE Sensex: PE={sensex_record['pe']}, PB={sensex_record['pb']}")
 
     db["last_updated"] = now_ist.isoformat()
     save_database(db)
